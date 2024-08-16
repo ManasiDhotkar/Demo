@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit Callback</title>
+</head>
+<body>
+
+<h2>Processing Login...</h2>
+
+<script>
+    const CLIENT_ID = 'bwaphX6XRY4GBp7-xj58ig'; // Your Reddit Client ID
+    const CLIENT_SECRET = 'WzLmgcbCVjyHQ78494zxf0TNlbzkFg'; // Your Reddit Client Secret
+    const REDIRECT_URI = 'https://manasidhotkar.github.io/Demo/';
+    const TOKEN_URL = 'https://www.reddit.com/api/v1/access_token';
+
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    const code = getQueryParam('code');
+    const state = getQueryParam('state');
+
+    if (code) {
+        fetch(TOKEN_URL, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Basic ' + btoa(CLIENT_ID + ':' + CLIENT_SECRET),
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.access_token) {
+                localStorage.setItem('redditAccessToken', data.access_token);
+                window.location.href = 'fetch.html'; // Redirect to the fetch page
+            } else {
+                console.error('Error fetching access token:', data);
+                alert('Failed to authenticate. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    } else {
+        alert('Authorization code not found.');
+    }
+</script>
+
+</body>
+</html>
