@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reddit Subreddit Management</title>
+    <title>Reddit Login</title>
     <style>
         button {
             background-color: #FF4500;
@@ -12,230 +12,41 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-right: 10px;
-        }
-        #subreddit-details, #subreddit-posts {
-            display: none;
         }
     </style>
 </head>
 <body>
 
-<h2>Manage Your Reddit Subreddits</h2>
+<h2>Login to Reddit</h2>
+<button onclick="loginWithReddit()">Login with Reddit</button>
 
-<!-- Display the list of subreddits managed by the user -->
-<h3>Your Subreddits:</h3>
-<ul id="subreddits"></ul>
-
-<!-- Section to create a post -->
-<h3>Post to a Subreddit:</h3>
-<div id="post-section">
-    <select id="subreddit-select"></select><br><br>
-    <textarea id="post-content" rows="4" cols="50" placeholder="Write your post here..."></textarea><br><br>
-    <button onclick="postToSubreddit()">Post to Reddit</button>
-</div>
-
-<!-- Buttons to show subreddit details and posts -->
-<h3>Actions:</h3>
-<button onclick="showSubredditDetails()">Show Subreddit Details</button>
-<button onclick="showSubredditPosts()">Show All Posts</button>
-
-<!-- Section to display selected subreddit details -->
-<h3>Selected Subreddit Details:</h3>
-<div id="subreddit-details">
-    <p><b>Subreddit Name:</b> <span id="subreddit-name"></span></p>
-    <p><b>Subreddit ID:</b> <span id="subreddit-id"></span></p>
-    <p><b>Subscribers:</b> <span id="subreddit-subscribers"></span></p>
-</div>
-
-<!-- Section to display posts from the selected subreddit -->
-<h3>Posts from the Subreddit:</h3>
-<ul id="subreddit-posts"></ul>
-
-<!-- JavaScript for Reddit OAuth2 and API interactions -->
 <script>
-    const clientId = 'bwaphX6XRY4GBp7-xj58ig'; // Your Reddit app client ID
-    const redirectUri = 'https://manasidhotkar.github.io/Demo/'; // Your registered redirect URI
-    const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=token&state=random_state_string&redirect_uri=${redirectUri}&scope=read,submit`;
+    function loginWithReddit() {
+        const clientId = 'bwaphX6XRY4GBp7-xj58ig';
+        const redirectUri = 'https://manasidhotkar.github.io/Demo/';
+        const state = Math.random().toString(36).substring(2, 15); // Random state for security
+        const scope = 'identity read'; // Modify scope as needed
 
-    function initiateLogin() {
+        const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=token&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${scope}`;
+
         window.location.href = authUrl;
     }
 
-    function parseHashParams() {
-        const hash = window.location.hash.substring(1);
+    function checkAccessToken() {
+        const hash = window.location.hash.substring(1); // Remove the #
         const params = new URLSearchParams(hash);
-        return {
-            accessToken: params.get('access_token'),
-            state: params.get('state')
-        };
-    }
+        const accessToken = params.get('access_token');
+        const state = params.get('state');
 
-    function fetchSubreddits(accessToken) {
-        fetch('https://oauth.reddit.com/subreddits/mine/subscriber', {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.data && data.data.children) {
-                let subredditsList = document.getElementById("subreddits");
-                let subredditSelect = document.getElementById("subreddit-select");
-                data.data.children.forEach(subreddit => {
-                    let listItem = document.createElement('li');
-                    listItem.innerHTML = `<b>${subreddit.data.display_name}</b> (ID: ${subreddit.data.id})`;
-                    subredditsList.appendChild(listItem);
-
-                    let optionItem = document.createElement('option');
-                    optionItem.value = subreddit.data.id;
-                    optionItem.innerHTML = subreddit.data.display_name;
-                    subredditSelect.appendChild(optionItem);
-                });
-            } else {
-                document.getElementById("subreddits").innerHTML = "No subreddits found.";
-                document.getElementById("post-section").style.display = "none";
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching subreddits:', error);
-            document.getElementById('subreddits').innerHTML = 'Failed to fetch subreddits.';
-        });
-    }
-
-    function showSubredditDetails() {
-        let subredditSelect = document.getElementById("subreddit-select");
-        let selectedSubredditId = subredditSelect.value;
-        let accessToken = localStorage.getItem('accessToken');
-
-        if (selectedSubredditId && accessToken) {
-            fetch(`https://oauth.reddit.com/r/${selectedSubredditId}/about`, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("subreddit-name").innerText = data.data.display_name || 'N/A';
-                document.getElementById("subreddit-id").innerText = data.data.id || 'N/A';
-                document.getElementById("subreddit-subscribers").innerText = data.data.subscribers || 'N/A';
-                document.getElementById("subreddit-details").style.display = 'block';
-            })
-            .catch(error => {
-                console.error('Error fetching subreddit details:', error);
-                alert('Failed to fetch subreddit details. Please try again.');
-            });
+        if (accessToken) {
+            localStorage.setItem('redditAccessToken', accessToken);
+            window.location.href = 'fetch.html'; // Redirect to fetch.html after login
         } else {
-            alert('Please select a subreddit first.');
+            console.log('Access token not found or login failed.');
         }
     }
 
-    function showSubredditPosts() {
-        let subredditSelect = document.getElementById("subreddit-select");
-        let selectedSubredditId = subredditSelect.value;
-        let accessToken = localStorage.getItem('accessToken');
-
-        if (selectedSubredditId && accessToken) {
-            fetch(`https://oauth.reddit.com/r/${selectedSubredditId}/new`, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                let postsList = document.getElementById("subreddit-posts");
-                postsList.innerHTML = ''; // Clear previous posts
-
-                if (data.data && data.data.children.length > 0) {
-                    data.data.children.forEach(post => {
-                        let postItem = document.createElement('li');
-                        postItem.innerHTML = `
-                            <p><b>Post ID:</b> ${post.data.id}</p>
-                            <p><b>Title:</b> ${post.data.title || 'No title'}</p>
-                            <p><b>Created Time:</b> ${new Date(post.data.created_utc * 1000).toLocaleString()}</p>
-                            <p><b>Upvotes:</b> ${post.data.ups || 0}</p>
-                            <p><b>Downvotes:</b> ${post.data.downs || 0}</p>
-                            <hr>
-                        `;
-                        postsList.appendChild(postItem);
-                    });
-                } else {
-                    postsList.innerHTML = "No posts found.";
-                }
-
-                document.getElementById("subreddit-posts").style.display = 'block';
-            })
-            .catch(error => {
-                console.error('Error fetching posts:', error);
-                alert('Failed to fetch posts. Please try again.');
-            });
-        } else {
-            alert('Please select a subreddit first.');
-        }
-    }
-
-    function postToSubreddit() {
-        let subredditSelect = document.getElementById("subreddit-select");
-        let selectedSubredditId = subredditSelect.value;
-        let accessToken = localStorage.getItem('accessToken');
-        let postContent = document.getElementById("post-content").value;
-
-        if (selectedSubredditId && postContent && accessToken) {
-            fetch(`https://oauth.reddit.com/api/submit`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    title: postContent,
-                    kind: 'self', // 'self' for text posts, 'link' for link posts
-                    sr: selectedSubredditId
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.json && data.json.errors.length === 0) {
-                    alert('Post was successful!');
-                    showSubredditPosts(); // Refresh posts after successful posting
-                } else {
-                    console.error('Error posting to subreddit:', data);
-                    alert('Failed to post. Please try again.');
-                }
-            })
-            .catch(error => {
-                console.error('Error posting to subreddit:', error);
-                alert('Failed to post. Please try again.');
-            });
-        } else {
-            alert('Please select a subreddit and write some content to post.');
-        }
-    }
-
-    window.addEventListener('load', () => {
-        const params = parseHashParams();
-        if (params.accessToken) {
-            localStorage.setItem('accessToken', params.accessToken);
-            fetchSubreddits(params.accessToken);
-        } else {
-            document.getElementById('subreddits').innerHTML = 'Please log in to continue.';
-        }
-    });
-</script>
-
-<!-- Button to trigger Reddit login -->
-<button onclick="initiateLogin()">Login to Reddit</button>
-<button onclick="logout()">Logout</button>
-
-<!-- Logout function -->
-<script>
-    function logout() {
-        localStorage.removeItem('accessToken');
-        document.getElementById('subreddits').innerHTML = 'You have logged out.';
-        document.getElementById('post-section').style.display = 'none';
-        document.getElementById('subreddit-details').style.display = 'none';
-        document.getElementById('subreddit-posts').style.display = 'none';
-    }
+    window.onload = checkAccessToken;
 </script>
 
 </body>
