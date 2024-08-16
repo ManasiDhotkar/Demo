@@ -18,35 +18,21 @@
 <body>
 
 <h2>Login to Reddit</h2>
+
+<!-- Button to initiate Reddit login -->
 <button onclick="loginWithReddit()">Login with Reddit</button>
 
 <script>
+    const CLIENT_ID = 'bwaphX6XRY4GBp7-xj58ig'; // Your Reddit Client ID
+    const REDIRECT_URI = 'https://manasidhotkar.github.io/Demo/'; // Your redirect URI
+    const AUTH_ENDPOINT = 'https://www.reddit.com/api/v1/authorize';
+    const RESPONSE_TYPE = 'code';
+    const SCOPE = 'identity'; // Adjust scopes as needed
+
     function loginWithReddit() {
-        const clientId = 'bwaphX6XRY4GBp7-xj58ig';
-        const redirectUri = 'https://manasidhotkar.github.io/Demo/';
-        const state = Math.random().toString(36).substring(2, 15); // Random state for security
-        const scope = 'identity read'; // Modify scope as needed
-
-        const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=token&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${scope}`;
-
+        const authUrl = `${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&response_type=${RESPONSE_TYPE}&state=some_random_state&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&duration=temporary&scope=${encodeURIComponent(SCOPE)}`;
         window.location.href = authUrl;
     }
-
-    function checkAccessToken() {
-        const hash = window.location.hash.substring(1); // Remove the #
-        const params = new URLSearchParams(hash);
-        const accessToken = params.get('access_token');
-        const state = params.get('state');
-
-        if (accessToken) {
-            localStorage.setItem('redditAccessToken', accessToken);
-            window.location.href = 'fetch.html'; // Redirect to fetch.html after login
-        } else {
-            console.log('Access token not found or login failed.');
-        }
-    }
-
-    window.onload = checkAccessToken;
 </script>
 
 </body>
