@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reddit Data Fetch</title>
+    <title>Reddit User Info and Posts</title>
     <style>
         button {
             background-color: #FF4500;
@@ -14,10 +14,10 @@
             cursor: pointer;
             margin: 10px 0;
         }
-        #user-info, #subreddits, #posts, #user-posts {
+        #user-info, #user-posts {
             display: none;
         }
-        #posts li, #user-posts li {
+        #user-posts li {
             background-color: #f9f9f9;
             padding: 15px;
             margin: 10px 0;
@@ -28,7 +28,7 @@
 </head>
 <body>
 
-<h2>Reddit Data Fetch</h2>
+<h2>Reddit User Info and Posts</h2>
 
 <!-- Display user info -->
 <h3>User Info:</h3>
@@ -39,19 +39,6 @@
 
 <!-- Button to fetch user info -->
 <button onclick="fetchUserInfo()">Fetch User Info</button>
-
-<!-- Display subreddits -->
-<h3>Your Subreddits:</h3>
-<ul id="subreddits"></ul>
-
-<!-- Button to fetch subreddits -->
-<button onclick="fetchSubreddits()">Fetch Subreddits</button>
-
-<!-- Display posts -->
-<h3>Recent Posts from a Subreddit:</h3>
-<input type="text" id="subreddit-name" placeholder="Enter subreddit name" />
-<button onclick="fetchPosts()">Fetch Posts</button>
-<ul id="posts"></ul>
 
 <!-- Button to fetch user posts -->
 <h3>My Reddit Posts</h3>
@@ -72,7 +59,7 @@
         const accessToken = getAccessToken();
         if (!accessToken) {
             alert('Access token not found. Please log in again.');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
             return;
         }
 
@@ -95,100 +82,21 @@
         });
     }
 
-    function fetchSubreddits() {
-        const accessToken = getAccessToken();
-        if (!accessToken) {
-            alert('Access token not found. Please log in again.');
-            window.location.href = 'login.html';
-            return;
-        }
-
-        fetch('https://oauth.reddit.com/subreddits/mine/subscriber', {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Subreddits:', data);
-            const subredditsList = document.getElementById('subreddits');
-            subredditsList.innerHTML = ''; // Clear previous subreddits
-
-            data.data.children.forEach(subreddit => {
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `<b>${subreddit.data.display_name}</b> - ${subreddit.data.title}`;
-                subredditsList.appendChild(listItem);
-            });
-
-            subredditsList.style.display = 'block';
-        })
-        .catch(error => {
-            console.error('Error fetching subreddits:', error);
-            alert('Failed to fetch subreddits. Please try again.');
-        });
-    }
-
-    function fetchPosts() {
-        const accessToken = getAccessToken();
-        const subreddit = document.getElementById('subreddit-name').value.trim();
-        if (!accessToken || !subreddit) {
-            alert('Access token or subreddit name not found. Please check and try again.');
-            return;
-        }
-
-        fetch(`https://oauth.reddit.com/r/${subreddit}/new`, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(`Posts from r/${subreddit}:`, data);
-            const postsList = document.getElementById('posts');
-            postsList.innerHTML = ''; // Clear previous posts
-
-            data.data.children.forEach(post => {
-                const postItem = document.createElement('li');
-                postItem.innerHTML = `
-                    <p><b>Title:</b> ${post.data.title}</p>
-                    <p><b>Author:</b> ${post.data.author}</p>
-                    <p><b>Created:</b> ${new Date(post.data.created_utc * 1000).toLocaleString()}</p>
-                    <p><b>Score:</b> ${post.data.score}</p>
-                    <p><b>Comments:</b> ${post.data.num_comments}</p>
-                    <p><b>Link:</b> <a href="https://www.reddit.com${post.data.permalink}" target="_blank">View Post</a></p>
-                    <hr>
-                `;
-                postsList.appendChild(postItem);
-            });
-
-            postsList.style.display = 'block';
-        })
-        .catch(error => {
-            console.error('Error fetching posts:', error);
-            alert('Failed to fetch posts. Please try again.');
-        });
-    }
-
     function fetchUserPosts() {
         const accessToken = getAccessToken();
         if (!accessToken) {
             alert('Access token not found. Please log in again.');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
             return;
         }
 
-        fetch('https://oauth.reddit.com/user/me/submitted', {
+        fetch('https://oauth.reddit.com/user/Elevate_Trend/submitted', {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
-                'User-Agent': 'YourAppName/0.1 by YourRedditUsername' // Replace with your app details
+                'User-Agent': 'ElevateApp/1.0 by Elevate_Trend' // Custom User-Agent
             }
         })
-        .then(response => {
-            console.log('User Posts Response:', response);
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
             console.log('User Posts Data:', data);
             const postsList = document.getElementById('user-posts');
@@ -222,7 +130,7 @@
 
     function logout() {
         localStorage.removeItem('redditAccessToken');
-        window.location.href = 'login.html'; // Redirect to login page after logout
+        window.location.href = 'index.html'; // Redirect to index page after logout
     }
 </script>
 
