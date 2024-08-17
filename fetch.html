@@ -101,30 +101,32 @@
         .then(data => {
             console.log('User Posts Data:', data);
 
-            if (!data || !data.data || !data.data.children) {
-                throw new Error('Invalid data structure received');
-            }
+            // Check if data and data.data.children exist
+            if (data && data.data && Array.isArray(data.data.children)) {
+                const postsList = document.getElementById('user-posts');
+                postsList.innerHTML = ''; // Clear previous posts
 
-            const postsList = document.getElementById('user-posts');
-            postsList.innerHTML = ''; // Clear previous posts
-
-            if (data.data.children.length > 0) {
-                data.data.children.forEach(post => {
-                    const postItem = document.createElement('li');
-                    postItem.innerHTML = `
-                        <p><b>Title:</b> ${post.data.title}</p>
-                        <p><b>Subreddit:</b> ${post.data.subreddit_name_prefixed}</p>
-                        <p><b>Created:</b> ${new Date(post.data.created_utc * 1000).toLocaleString()}</p>
-                        <p><b>Score:</b> ${post.data.score}</p>
-                        <p><b>Comments:</b> ${post.data.num_comments}</p>
-                        <p><b>Link:</b> <a href="https://www.reddit.com${post.data.permalink}" target="_blank">View Post</a></p>
-                        <hr>
-                    `;
-                    postsList.appendChild(postItem);
-                });
-                document.getElementById('user-posts').style.display = 'block';
+                if (data.data.children.length > 0) {
+                    data.data.children.forEach(post => {
+                        const postItem = document.createElement('li');
+                        postItem.innerHTML = `
+                            <p><b>Title:</b> ${post.data.title}</p>
+                            <p><b>Subreddit:</b> ${post.data.subreddit_name_prefixed}</p>
+                            <p><b>Created:</b> ${new Date(post.data.created_utc * 1000).toLocaleString()}</p>
+                            <p><b>Score:</b> ${post.data.score}</p>
+                            <p><b>Comments:</b> ${post.data.num_comments}</p>
+                            <p><b>Link:</b> <a href="https://www.reddit.com${post.data.permalink}" target="_blank">View Post</a></p>
+                            <hr>
+                        `;
+                        postsList.appendChild(postItem);
+                    });
+                    document.getElementById('user-posts').style.display = 'block';
+                } else {
+                    alert('No posts found.');
+                }
             } else {
-                alert('No posts found.');
+                alert('Received data is not in the expected format.');
+                console.log('Received Data:', data);
             }
         })
         .catch(error => {
