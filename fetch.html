@@ -66,6 +66,7 @@
         fetch('https://oauth.reddit.com/api/v1/me', {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
+                'User-Agent': 'web:elevate_trend:1.0 (by /u/Elevate_Trend)',
                 'Content-Type': 'application/json'
             }
         })
@@ -93,7 +94,7 @@
         fetch('https://oauth.reddit.com/user/Elevate_Trend/submitted', {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
-                'User-Agent': 'elevate_trend/1.0 by Elevate_Trend',
+                'User-Agent': 'web:elevate_trend:1.0 (by /u/Elevate_Trend)',
                 'Content-Type': 'application/json'
             }
         })
@@ -106,7 +107,6 @@
         .then(data => {
             console.log('User Posts Data:', data);
 
-            // Check if the data structure is as expected
             if (data && data.data && Array.isArray(data.data.children)) {
                 const postsList = document.getElementById('user-posts');
                 postsList.innerHTML = ''; // Clear previous posts
@@ -130,7 +130,6 @@
                     alert('No posts found.');
                 }
             } else {
-                // Log unexpected data structure
                 console.error('Unexpected data structure:', data);
                 alert('Unexpected data structure received. Please check the console for details.');
             }
